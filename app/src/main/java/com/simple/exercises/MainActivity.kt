@@ -15,10 +15,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -34,6 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.simple.exercises.ui.DataProvider
 import kotlinx.coroutines.launch
+
+//Common
+private const val GREETINGS = "Hello World!"
 
 //BottomBar
 private val FAB_SHAPE = RoundedCornerShape(50.dp)
@@ -61,8 +61,9 @@ fun PreviewMainContent() {
 @Composable
 fun MainContent() {
     val scope = rememberCoroutineScope()
-    val scaffoldState = rememberScaffoldState()
     val listState = rememberLazyListState()
+    val scaffoldState = rememberScaffoldState()
+    val topContentHeight = remember { mutableStateOf(0) }
     val data = DataProvider.extendedData(LocalContext.current)
 
     Scaffold(
@@ -85,18 +86,67 @@ fun MainContent() {
             ) {}
         }
     ) {
-        SetExercises(
+        Content(
             data = data,
-            listState = listState
+            listState = listState,
+            topContentHeight = topContentHeight
         )
     }
 }
 
+@Composable
+fun Content(
+    data: List<Exercise>,
+    listState: LazyListState,
+    topContentHeight: MutableState<Int>,
+){
+    Box(Modifier.fillMaxSize()){
+        SetExercises(
+            data = data,
+            listState = listState,
+            topContentHeight = topContentHeight
+        )
+        TopBar(
+            listState = listState,
+            topContentHeight = topContentHeight
+        )
+    }
+}
+
+@Composable
+fun TopBar(
+    listState: LazyListState,
+    topContentHeight: MutableState<Int>,
+) {
+    Box(
+        modifier = Modifier.graphicsLayer {
+            if (listState.isFirstItem()){
+                this.alpha = kotlin.math.min(
+                    1f,
+                    (listState.firstVisibleItemScrollOffset.toFloat() / topContentHeight.value)
+                )
+            }
+        }
+    ) {
+        TopAppBar(
+            elevation = 2.dp
+        ) {
+            Text(
+                text = GREETINGS,
+                style = typography.h4
+            )
+        }
+    }
+
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SetExercises(data: List<Exercise>, listState: LazyListState) {
-    val topContentHeight = remember { mutableStateOf(0) }
-
+fun SetExercises(
+    data: List<Exercise>,
+    listState: LazyListState,
+    topContentHeight: MutableState<Int>,
+) {
     LazyColumn(
         state = listState,
         modifier = Modifier
@@ -108,21 +158,21 @@ fun SetExercises(data: List<Exercise>, listState: LazyListState) {
                 modifier = Modifier
                     .fillParentMaxHeight(0.5f)
                     .fillParentMaxWidth()
-                    .onGloballyPositioned {
-                        topContentHeight.value = it.size.height
-                    }
+                    .onGloballyPositioned { topContentHeight.value = it.size.height }
                     .graphicsLayer {
-                        alpha = kotlin.math.min(
-                            1f,
-                            1 - (listState.firstVisibleItemScrollOffset.toFloat() / topContentHeight.value)
-                        )
+                        if (listState.isFirstItem()){
+                            this.alpha = kotlin.math.min(
+                                1f,
+                                1 - (listState.firstVisibleItemScrollOffset.toFloat() / topContentHeight.value)
+                            )
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     style = typography.h1,
                     textAlign = TextAlign.Center,
-                    text = "Hello world!"
+                    text = GREETINGS
                 )
             }
         }
@@ -131,6 +181,8 @@ fun SetExercises(data: List<Exercise>, listState: LazyListState) {
         }
     }
 }
+
+private fun LazyListState.isFirstItem() = firstVisibleItemIndex == 0
 
 @Composable
 fun ExerciseCard(exercise: Exercise) =
