@@ -4,27 +4,27 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -62,7 +62,7 @@ fun PreviewMainContent() {
 fun MainContent() {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
-    val offset = remember { mutableStateOf(0f) }
+    val listState = rememberLazyListState()
     val data = DataProvider.extendedData(LocalContext.current)
 
     Scaffold(
@@ -75,9 +75,9 @@ fun MainContent() {
             FloatingActionButton(
                 onClick = {
                     scope.launch {
-                        scaffoldState
-                            .snackbarHostState
-                            .showSnackbar("hello world!")
+                        listState.animateScrollToItem(
+                            10
+                        )
                     }
                 },
                 shape = FAB_SHAPE,
@@ -87,33 +87,21 @@ fun MainContent() {
     ) {
         SetExercises(
             data = data,
-            offset = offset
+            listState = listState
         )
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SetExercises(data: List<Exercise>, offset: MutableState<Float>) {
-    val scrollState = rememberScrollState()
+fun SetExercises(data: List<Exercise>, listState: LazyListState) {
     val topContentHeight = remember { mutableStateOf(0) }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
-            .onGloballyPositioned {
-                topContentHeight.value = it.size.height
-            }
-            .scrollable(scrollState, Orientation.Vertical)
-            .nestedScroll(connection = object : NestedScrollConnection {
-                override fun onPostScroll(
-                    consumed: Offset,
-                    available: Offset,
-                    source: NestedScrollSource
-                ): Offset {
-                    offset.value = minOf(scrollState.maxValue.toFloat(),  maxOf(0f, (offset.value - consumed.y)))
-                    return super.onPostScroll(consumed, available, source)
-                }
-            })
+            .onGloballyPositioned { topContentHeight.value = it.size.height }
     ) {
         item() {
             Box(
@@ -124,7 +112,10 @@ fun SetExercises(data: List<Exercise>, offset: MutableState<Float>) {
                         topContentHeight.value = it.size.height
                     }
                     .graphicsLayer {
-                        alpha = kotlin.math.min(1f, 1 - (offset.value / topContentHeight.value))
+                        alpha = kotlin.math.min(
+                            1f,
+                            1 - (listState.firstVisibleItemScrollOffset.toFloat() / topContentHeight.value)
+                        )
                     },
                 contentAlignment = Alignment.Center
             ) {
