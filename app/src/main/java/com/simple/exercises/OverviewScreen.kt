@@ -40,8 +40,7 @@ private const val GREETINGS = "Hello World!"
 fun OverviewBody(
     data: List<Exercise>,
     listState: LazyListState,
-    topContentHeight: MutableState<Int>,
-    onClickAction: () -> Unit
+    topContentHeight: MutableState<Int>
 ) {
     Box(Modifier.fillMaxSize()) {
         SetExercises(
@@ -89,8 +88,7 @@ private fun TopBar(
 private fun SetExercises(
     data: List<Exercise>,
     listState: LazyListState,
-    topContentHeight: MutableState<Int>,
-    onClickAction: () -> Unit
+    topContentHeight: MutableState<Int>
 ) {
     LazyColumn(
         state = listState,

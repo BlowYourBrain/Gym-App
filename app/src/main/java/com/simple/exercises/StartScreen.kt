@@ -42,11 +42,7 @@ fun App(navController: NavHostController) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    scope.launch {
-                        listState.animateScrollToItem(
-                            10
-                        )
-                    }
+                    navController.navigate(Screens.DetailScreen.name)
                 },
                 shape = FAB_SHAPE,
                 backgroundColor = Color(0xFFFF8C00)

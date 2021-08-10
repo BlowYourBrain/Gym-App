@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var currentScreen by rememberSaveable { mutableStateOf(Screens.OverviewScreen) }
+//            var currentScreen by rememberSaveable { mutableStateOf(Screens.OverviewScreen) }
             val navController = rememberNavController()
             App(navController)
         }

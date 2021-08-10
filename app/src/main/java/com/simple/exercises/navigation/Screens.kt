@@ -7,14 +7,7 @@ import com.simple.exercises.*
 
 sealed class Screens(val name: String) {
 
-    object OverviewScreen : Screens("OverviewScreen") {
-
-        fun getScreen(
-            data: List<Exercise>,
-            listState: LazyListState,
-            topContentHeight: MutableState<Int>,
-        ): @Composable () -> Unit = { OverviewBody(data, listState, topContentHeight) }
-    }
+    object OverviewScreen : Screens("OverviewScreen")
     object SplashScreen: Screens("SplashScreen")
     object DetailScreen: Screens("DetailScreen")
 }

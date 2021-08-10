@@ -8,6 +8,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.simple.exercises.DetailScreenBody
+import com.simple.exercises.OverviewBody
 import com.simple.exercises.ui.DataProvider
 
 @Composable
@@ -24,18 +26,11 @@ fun AppNavHost(
         modifier = modifier
     ) {
         composable(Screens.OverviewScreen.name) {
-            Screens.OverviewScreen.getScreen(
-                data = DataProvider.extendedData(LocalContext.current),
-                listState = listState,
-                topContentHeight = topContentHeight,
-                onListItemClick = {
-
-                }
-            )
+            OverviewBody(DataProvider.extendedData(LocalContext.current), listState, topContentHeight)
         }
 
         composable(Screens.DetailScreen.name){
-
+            DetailScreenBody()
         }
 
         composable(Screens.SplashScreen.name){
